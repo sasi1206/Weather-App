@@ -6,17 +6,21 @@
     font-family: "Poppins";
 }
 body{
+    width: 100%;
     height: 100%;
-    width: 94%;
 }
 .container{
     display: grid;
     grid-template-columns: 25% 75%;
     gap: 50px;
 }
-.location-container{padding: 40px;text-align: center;}
+.location-container{
+    padding: 40px;
+    text-align: center;
+
+}
 #search-box{
-    width: 250px;
+    width: 100%;
     height: 0;
     padding: 18px;
     margin: 0 auto;
@@ -35,11 +39,12 @@ body{
     cursor: pointer;
     position: relative;
     bottom: 28px;
-    left: 145px;
+    left: 55%;
 }
 .search-img{
     width: 20px;
     height: 20px;
+    color: rgb(20, 20, 20);
     z-index: 10;
 }
 .error-container{
@@ -109,8 +114,8 @@ body{
     font-size: 26px;
 }
 .weather{
-    width: 97%;
-    height: 100%;
+    width: 89%;
+    height: 95.6%;
     padding: 30px;
     background-color: #ededef;
 }
