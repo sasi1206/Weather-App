@@ -4,33 +4,39 @@ import axios from "axios";
 
 function App() {
   const[Search,setSearch] = useState('');
-  const[IsLoading,setIsLoading] = useState(false);
-  const[FetchError,setFetchError]= useState(false);
-  const[WeatherDetails,setWeatherDetails]=useState({
-    Degree: 0,
-    Weather:null,
-    Wind:0,
-    Humadity:0,
-    FeelsLike:0,
-    UVIndex:0,
-    Pressure:0,
-    ChanceOfRain:0,
-    SunRise:null,
-    SunSet:null,
-    MoonRise:null,
-    MoonSet:null
-  });
+  const[Degree,setDegree] = useState(0);
+  const[Weather,setWeather] = useState('');
+  const[Wind,setWind] = useState(0);
+  const[Humidity,setHumidity] = useState(0);
+  const[FeelsLike,setFeelsLike] = useState(0);
+  const[UVIndex,setUVIndex] = useState(0);
+  const[Pressure,setPressure] = useState(0);
+  const[ChanceOfRain,setChanceOfRain] = useState(0);
+  const[Sunrise,setSunrise] = useState('');
+  const[Sunset,setSunset] = useState('');
+  const[Moonrise,setMoonrise] = useState('');
+  const[Moonset, setMoonset] = useState('');
 
-  const fetchingData = async ()=>{
+  const fetchingData = async (e)=>{
+    e.preventDefault();
     try{
       const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
-      setIsLoading(true);
+      console.log(data);
+      setDegree(data.current.temp_c);
+      setWeather(data.current.condition.text);
+      setWind(data.current.wind_kph);
+      setHumidity(data.current.humidity);
+      setFeelsLike(data.current.feelslike_c);
+      setUVIndex(data.current.uv);
+      setPressure(data.current.pressure_mb);
+      setChanceOfRain(data.forecast.forecastday[0].day.daily_chance_of_rain);
+      setSunrise(data.forecast.forecastday[0].astro.sunrise);
+      setSunset(data.forecast.forecastday[0].astro.sunset);
+      setMoonrise(data.forecast.forecastday[0].astro.moonrise);
+      setMoonset(data.forecast.forecastday[0].astro.moonset);
     }
     catch(err){
-      setFetchError(err);
-    }
-    finally{
-      setIsLoading(false);
+      console.error(err);
     }
   }
 
@@ -45,7 +51,7 @@ function App() {
               value={Search}
               onChange={(e)=>setSearch(e.target.value)}
             />
-            <button className="search-button"><FaSearch className="search-img" onClick={fetchingData}/></button>
+            <button className="search-button" onClick={fetchingData}><FaSearch className="search-img"/></button>
             <div className="error-container">
               <FaInfoCircle />
               <span>Please Enter a Value</span>
@@ -54,12 +60,9 @@ function App() {
         </div>
         <div className="location-details">
           <div className="deg">
-            <img
-              src="../Imgs/cloudy.png"
-              id="icon"
-            />
-            <p className="degree"><span className="span">{WeatherDetails.Degree}</span><span className="o">o</span><span className="C">C</span></p>
-            <p className="weather">{WeatherDetails.Weather}</p>
+            <img src={`/Imgs/${Weather}.png`} alt="icon" id="icon"/>
+            <p className="degree"><span className="span">{Degree}</span><span className="o">o</span><span className="C">C</span></p>
+            <p id="weather">{Weather}</p>
           </div>
           <div className="line"></div>
           <div className="h-d-t">
@@ -77,38 +80,38 @@ function App() {
         <div className="wc">
           <div className="Wind">
             <p>Wind</p>
-            <p>{WeatherDetails.Wind}km/h</p>
+            <p>{Wind}km/h</p>
           </div>
           <div className="Humadity">
             <p>Humidity</p>
-            <p>{WeatherDetails.Humadity}%</p>
+            <p>{Humidity}%</p>
           </div>
           <div className="Feels-like">
             <p>Feel's Like</p>
-            <p className="degree"><span className="span">{WeatherDetails.FeelsLike}</span><span className="o">o</span><span className="C">C</span></p>
+            <p className="degree"><span className="span">{FeelsLike}</span><span className="o">o</span><span className="C">C</span></p>
           </div>
           <div className="UV-index">
             <p>UV Index</p>
-            <p>{WeatherDetails.UVIndex}</p>
+            <p>{UVIndex}</p>
           </div>
           <div className="Pressure">
             <p>Pressure</p>
-            <p>{WeatherDetails.Pressure} mb</p>
+            <p>{Pressure} mb</p>
           </div>
             <div className="Chance-of-rain">
               <p>Chance of rain</p>
-              <p>{WeatherDetails.ChanceOfRain}%</p>
+              <p>{ChanceOfRain}%</p>
             </div>
             <div className="sun">
               <p>Sun</p>
               <table>
                 <tr>
                   <td>Rise</td>
-                  <td className="rise">{WeatherDetails.SunRise}</td>
+                  <td className="rise">{Sunrise}</td>
                 </tr>
                 <tr>
                   <td>Set</td>
-                  <td className="set">{WeatherDetails.SunSet}</td>
+                  <td className="set">{Sunset}</td>
                 </tr>
               </table>
             </div>
@@ -117,11 +120,11 @@ function App() {
               <table>
                 <tr>
                   <td>Rise</td>
-                  <td className="rise">{WeatherDetails.MoonRise}</td>
+                  <td className="rise">{Moonrise}</td>
                 </tr>
                 <tr>
                   <td>Set</td>
-                  <td className="set">{WeatherDetails.MoonSet}</td>
+                  <td className="set">{Moonset}</td>
                 </tr>
               </table>
             </div>
