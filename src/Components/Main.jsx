@@ -7,6 +7,7 @@ import LoadingScreen from './Loading.jsx';
 const Main = () => {
   const[Search,setSearch] = useState('');
   const[Loading,setLoading] = useState(false);
+  const[GeoLocationAllowed,setGeoLocationAllowed] = useState(false);
   const[WeatherDeatils,setWeatherDetails] = useState({
     Weather:{
       Degree:0,
@@ -19,9 +20,9 @@ const Main = () => {
       ChanceOfRain:0
     },
     Location:{
-      City:null,
-      Region:null,
-      Country:null
+      City:'',
+      Region:'',
+      Country:''
     },
     Astro:{
       Sunrise:null,
@@ -31,9 +32,7 @@ const Main = () => {
     }
   });
 
-
-  const fetchingData = async (e)=>{
-    e.preventDefault();
+  const fetchingData = async ()=>{
     try{
       setLoading(true);
       const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
@@ -67,10 +66,24 @@ const Main = () => {
       console.error(err);
     }
     finally{
-      setLoading(false);
+      setTimeout(()=>setLoading(false),3000);
     }
-  }    
+  }
+
+  useEffect(()=>{
+    navigator.geolocation.getCurrentPosition((position)=>{
+      setSearch(`${position.coords.latitude},${position.coords.longitude}`);
+      setGeoLocationAllowed(true);
+    },(err)=> console.log(err))
+  },[]);
+
+  useEffect(()=>{
+    if(GeoLocationAllowed){
+      fetchingData();
+    }
+  },[GeoLocationAllowed])
   return (
+    <>
     <div className="container">
         <div className="location-container">
             <div className="search">
@@ -82,7 +95,10 @@ const Main = () => {
                     value={Search}
                     onChange={(e)=>setSearch(e.target.value)}
                     />
-                    <button className="search-button" onClick={fetchingData}><img src="/Imgs/search.png" className="search-img"/></button>
+                    <button className="search-button" onClick={(e)=>{
+                      e.preventDefault();
+                      fetchingData();
+                    }}><img src="/Imgs/search.png" className="search-img"/></button>
                     <div className="error-container">
                     <FaInfoCircle />
                     <span>Please Enter a Value</span>
@@ -141,11 +157,13 @@ const Main = () => {
                     <table>
                         <tbody>
                         <tr>
-                            <td>Rise:</td>
+                            <td>Rise</td>
+                            <td>:</td>
                             <td className="rise">{WeatherDeatils.Astro.Sunrise}</td>
                         </tr>
                         <tr>
-                            <td>Set:</td>
+                            <td>Set</td>
+                            <td>:</td>
                             <td className="set">{WeatherDeatils.Astro.Sunset}</td>
                         </tr>
                         </tbody>
@@ -156,11 +174,13 @@ const Main = () => {
                     <table>
                         <tbody>
                         <tr>
-                            <td>Rise:</td>
+                            <td>Rise</td>
+                            <td>:</td>
                             <td className="rise">{WeatherDeatils.Astro.Moonrise}</td>
                         </tr>
                         <tr>
-                            <td>Set:</td>
+                            <td>Set</td>
+                            <td>:</td>
                             <td className="set">{WeatherDeatils.Astro.Moonset}</td>
                         </tr>
                         </tbody>
@@ -168,8 +188,9 @@ const Main = () => {
                 </div>
             </div>
         </div>
-        <LoadingScreen />
     </div>
+    <>{Loading && <LoadingScreen />}</>
+    </>
   )
 }
 

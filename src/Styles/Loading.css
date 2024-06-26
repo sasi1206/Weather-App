@@ -1,32 +1,27 @@
-body{
-    height: 100%;
-    width: 100%;
-}
 .loading-container{
+    width: 100%;
+    height: 99%;
     position: absolute;
+    top: 0;
     background-color: white;
-    width: 100vw;
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
 }
-.loading-circle{
-    width: 3%;
-    height: 6%;
-    border: 3px solid #607df1;
-    border-bottom: 3px solid white;
-    border-radius: 50%;
-    animation-name: rotate;
-    animation-duration: 5s;
-    animation-iteration-count: infinite;
-}
-@keyframes rotate{
-    from{
-        transform: rotate(0deg);
-    }
-    to{
-        transform: rotate(360deg);
-    }
-}
+.loader {
+    width: 50px;
+    aspect-ratio: 2;
+    --_g: no-repeat radial-gradient(circle closest-side,#607df1 90%,#fff);
+    background: 
+      var(--_g) 0%   50%,
+      var(--_g) 50%  50%,
+      var(--_g) 100% 50%;
+    background-size: 10px 10px;
+    animation: jump 1s infinite linear;
+  }
+  @keyframes jump {
+      20%{background-position: 0% 50%,50% 50%,100% 0%}
+      40%{background-position: 0% 50%,50% 0%,100% 50%}
+      60%{background-position: 0% 0%,50% 50%,100% 50%}
+  }
