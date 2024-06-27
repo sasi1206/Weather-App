@@ -43,31 +43,11 @@
     z-index: 10;
 }
 .error-container{
-    display: none;
     position: relative;
     bottom: 25px;
-    left: -10px;
-    animation-name: slide;
-    animation-duration: .13s;
-    animation-timing-function: linear;
+    right: 20%;
 }
-@keyframes slide {
-    1%{
-        transform: translateX(-10px);
-    }
-    50%{
-        transform: translateX(30px);
-    }
-    100%{
-        transform: translateX(0);
-    }
-}
-.error-container img{
-    position: relative;
-    top: 3px;
-    height: 16px;
-    width: 16px;
-}
+.none{display: none;}
 .error-container span{
     color: red;
     font-size: 12px;
@@ -114,6 +94,9 @@
     height: 100%;
     padding: 30px;
     background-color: #ededef;
+    .buttons{
+        visibility: hidden;
+    }
 }
 .wc{
     display: grid;

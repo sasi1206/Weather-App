@@ -1,12 +1,14 @@
 import { useState , useEffect } from "react";
-import { FaInfoCircle } from "react-icons/fa";
 import axios from "axios";
+import { format } from 'date-fns';
 import LoadingScreen from './Loading.jsx';
+import AllowLocation from './AllowLocationPage.jsx';
 
 
 const Main = () => {
   const[Search,setSearch] = useState('');
   const[Loading,setLoading] = useState(false);
+  const[Error,setError] = useState(false);
   const[GeoLocationAllowed,setGeoLocationAllowed] = useState(false);
   const[WeatherDeatils,setWeatherDetails] = useState({
     Weather:{
@@ -32,10 +34,29 @@ const Main = () => {
     }
   });
 
-  const fetchingData = async ()=>{
+  useEffect(()=>{
+    navigator.geolocation.getCurrentPosition((position)=>{
+      setGeoLocationAllowed(true);
+      setSearch(`${position.coords.latitude},${position.coords.longitude}`);
+    },(err)=> setGeoLocationAllowed(false))
+  },[]);
+
+  useEffect(()=>{
+    if(GeoLocationAllowed){
+      Today();
+    }
+  },[GeoLocationAllowed])
+
+  const FetchingData = async ()=>{
+    const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
+    return data;
+  }
+
+  const Today = async ()=>{
+    Search.length == 0 ? setError(true) :
+    setLoading(true);
     try{
-      setLoading(true);
-      const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
+      const data = await FetchingData();
       const { current , forecast , location } = data;
       setWeatherDetails({
         ...WeatherDeatils,
@@ -61,135 +82,122 @@ const Main = () => {
           Moonset:forecast.forecastday[0].astro.moonset
         }
       });
-    }
-    catch(err){
-      console.error(err);
-    }
-    finally{
-      setTimeout(()=>setLoading(false),3000);
+    }catch(err){
+      console.log(err);
+    }finally{
+      setLoading(false)
     }
   }
 
-  useEffect(()=>{
-    navigator.geolocation.getCurrentPosition((position)=>{
-      setSearch(`${position.coords.latitude},${position.coords.longitude}`);
-      setGeoLocationAllowed(true);
-    },(err)=> console.log(err))
-  },[]);
-
-  useEffect(()=>{
-    if(GeoLocationAllowed){
-      fetchingData();
-    }
-  },[GeoLocationAllowed])
   return (
     <>
-    <div className="container">
-        <div className="location-container">
-            <div className="search">
-                <form>
-                    <input 
-                    type="text"
-                    id="search-box"
-                    placeholder="Enter a city or country name"
-                    value={Search}
-                    onChange={(e)=>setSearch(e.target.value)}
-                    />
-                    <button className="search-button" onClick={(e)=>{
-                      e.preventDefault();
-                      fetchingData();
-                    }}><img src="/Imgs/search.png" className="search-img"/></button>
-                    <div className="error-container">
-                    <FaInfoCircle />
-                    <span>Please Enter a Value</span>
+    <>{Loading && GeoLocationAllowed && <LoadingScreen />}</>
+    { GeoLocationAllowed  && !Loading ? (
+        <div className="container">
+            <div className="location-container">
+                <div className="search">
+                    <form>
+                        <input 
+                        type="text"
+                        id="search-box"
+                        placeholder="Enter a city or country name"
+                        value={Search}
+                        onChange={(e)=>{setSearch(e.target.value); setError(false)}}
+                        />
+                        <button className="search-button" onClick={(e)=>{
+                          e.preventDefault();
+                          Today();
+                        }}><img src="/Imgs/search.png" className="search-img"/></button>
+                        <div className={Error ? 'error-container' : 'none'}>
+                        <span>Please Enter a Value</span>
+                        </div>
+                    </form>
+                </div>
+                <div className="location-details">
+                    <div className="deg">
+                        <img src={`/Imgs/${WeatherDeatils.Weather.CurrentWeather}.png`} alt="icon" id="icon"/>
+                        <p className="degree"><span className="span">{WeatherDeatils.Weather.Degree}</span><span className="o">o</span><span className="C">C</span></p>
+                        <p id="weather">{WeatherDeatils.Weather.CurrentWeather}</p>
                     </div>
-                </form>
-            </div>
-            <div className="location-details">
-                <div className="deg">
-                    <img src={`/Imgs/${WeatherDeatils.Weather.CurrentWeather}.png`} alt="icon" id="icon"/>
-                    <p className="degree"><span className="span">{WeatherDeatils.Weather.Degree}</span><span className="o">o</span><span className="C">C</span></p>
-                    <p id="weather">{WeatherDeatils.Weather.CurrentWeather}</p>
-                </div>
-                <div className="line"></div>
-                <div className="h-d-t">
-                    <p className="date">21-July-2023</p>
-                    <p><span className="day">Friday,</span><span className="time">12:44 PM</span></p>
-                </div>
-                <div className="location">
-                    <p>{WeatherDeatils.Location.City}</p>
-                    <p>{WeatherDeatils.Location.Region+','+WeatherDeatils.Location.Country}</p>
+                    <div className="line"></div>
+                    <div className="h-d-t">
+                        <p className="date">{ format(new Date(),"dd-MMMM-yyyy")}</p>
+                        <p><span className="day">{ format(new Date(),"eeee")},</span><span className="time">{ format(new Date(),'hh:mm a')}</span></p>
+                    </div>
+                    <div className="location">
+                        <p>{WeatherDeatils.Location.City}</p>
+                        <p>{WeatherDeatils.Location.Region+','+WeatherDeatils.Location.Country}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div className="weather">
-            <form className="buttons">
-                <button className="today">Today</button>
-                <button className="tmrw">Tommorrow</button>
-            </form>
-            <div className="wc">
-                <div className="Wind">
-                    <p>Wind</p>
-                    <p>{WeatherDeatils.Weather.Wind} km/h</p>
-                </div>
-                <div className="Humadity">
-                    <p>Humidity</p>
-                    <p>{WeatherDeatils.Weather.Humidity} %</p>
-                </div>
-                <div className="Feels-like">
-                    <p>Feel's Like</p>
-                    <p className="degree"><span className="span">{WeatherDeatils.Weather.FeelsLike}</span><span className="o">o</span><span className="C">C</span></p>
-                </div>
-                <div className="UV-index">
-                    <p>UV Index</p>
-                    <p>{WeatherDeatils.Weather.UVIndex}</p>
-                </div>
-                <div className="Pressure">
-                    <p>Pressure</p>
-                    <p>{WeatherDeatils.Weather.Pressure} mb</p>
-                </div>
-                <div className="Chance-of-rain">
-                    <p>Chance of rain</p>
-                    <p>{WeatherDeatils.Weather.ChanceOfRain} %</p>
-                </div>
-                <div className="sun">
-                    <p>Sun</p>
-                    <table>
-                        <tbody>
-                        <tr>
-                            <td>Rise</td>
-                            <td>:</td>
-                            <td className="rise">{WeatherDeatils.Astro.Sunrise}</td>
-                        </tr>
-                        <tr>
-                            <td>Set</td>
-                            <td>:</td>
-                            <td className="set">{WeatherDeatils.Astro.Sunset}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div className="moon">
-                    <p>Moon</p>
-                    <table>
-                        <tbody>
-                        <tr>
-                            <td>Rise</td>
-                            <td>:</td>
-                            <td className="rise">{WeatherDeatils.Astro.Moonrise}</td>
-                        </tr>
-                        <tr>
-                            <td>Set</td>
-                            <td>:</td>
-                            <td className="set">{WeatherDeatils.Astro.Moonset}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div className="weather">
+              <form className="buttons">
+                  <button className="today">Today</button>
+                  <button className="tmrw">Tommorrow</button>
+              </form>
+              <div className="wc">
+                  <div className="Wind">
+                      <p>Wind</p>
+                      <p>{WeatherDeatils.Weather.Wind} km/h</p>
+                  </div>
+                  <div className="Humadity">
+                      <p>Humidity</p>
+                      <p>{WeatherDeatils.Weather.Humidity} %</p>
+                  </div>
+                  <div className="Feels-like">
+                      <p>Feel's Like</p>
+                      <p className="degree"><span className="span">{WeatherDeatils.Weather.FeelsLike}</span><span className="o">o</span><span className="C">C</span></p>
+                  </div>
+                  <div className="UV-index">
+                      <p>UV Index</p>
+                      <p>{WeatherDeatils.Weather.UVIndex}</p>
+                  </div>
+                  <div className="Pressure">
+                      <p>Pressure</p>
+                      <p>{WeatherDeatils.Weather.Pressure} mb</p>
+                  </div>
+                  <div className="Chance-of-rain">
+                      <p>Chance of rain</p>
+                      <p>{WeatherDeatils.Weather.ChanceOfRain} %</p>
+                  </div>
+                  <div className="sun">
+                      <p>Sun</p>
+                      <table>
+                          <tbody>
+                          <tr>
+                              <td>Rise</td>
+                              <td>:</td>
+                              <td className="rise">{WeatherDeatils.Astro.Sunrise}</td>
+                          </tr>
+                          <tr>
+                              <td>Set</td>
+                              <td>:</td>
+                              <td className="set">{WeatherDeatils.Astro.Sunset}</td>
+                          </tr>
+                          </tbody>
+                      </table>
+                  </div>
+                  <div className="moon">
+                      <p>Moon</p>
+                      <table>
+                          <tbody>
+                          <tr>
+                              <td>Rise</td>
+                              <td>:</td>
+                              <td className="rise">{WeatherDeatils.Astro.Moonrise}</td>
+                          </tr>
+                          <tr>
+                              <td>Set</td>
+                              <td>:</td>
+                              <td className="set">{WeatherDeatils.Astro.Moonset}</td>
+                          </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
             </div>
         </div>
-    </div>
-    <>{Loading && <LoadingScreen />}</>
+      ) : <AllowLocation /> }
     </>
   )
 }
