@@ -8,7 +8,10 @@ import AllowLocation from './AllowLocationPage.jsx';
 const Main = () => {
   const[Search,setSearch] = useState('');
   const[Loading,setLoading] = useState(false);
-  const[Error,setError] = useState(false);
+  const[Error,setError] = useState({
+    is_error : false,
+    error_msg:''
+  });
   const[GeoLocationAllowed,setGeoLocationAllowed] = useState(false);
   const[WeatherDeatils,setWeatherDetails] = useState({
     Weather:{
@@ -19,7 +22,8 @@ const Main = () => {
       FeelsLike:0,
       UVIndex:0,
       Pressure:0,
-      ChanceOfRain:0
+      ChanceOfRain:0,
+      icon:''
     },
     Location:{
       City:'',
@@ -45,18 +49,27 @@ const Main = () => {
     if(GeoLocationAllowed){
       Today();
     }
-  },[GeoLocationAllowed])
+  },[GeoLocationAllowed])// eslint-disable-line react-hooks/exhaustive-deps
 
   const FetchingData = async ()=>{
-    const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
-    return data;
+      const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
+      return data;
   }
 
   const Today = async ()=>{
-    Search.length == 0 ? setError(true) :
+    if(Search === ''){
+      console.log(Search);
+      setError({
+        ...Error,
+        is_error:true,
+        error_msg: "Please Enter a value"
+      })
+    }
+    else{
     setLoading(true);
     try{
       const data = await FetchingData();
+      console.log(data);
       const { current , forecast , location } = data;
       setWeatherDetails({
         ...WeatherDeatils,
@@ -68,7 +81,8 @@ const Main = () => {
           Humidity:current.humidity,
           UVIndex:current.uv,
           Pressure:current.pressure_mb,
-          ChanceOfRain:forecast.forecastday[0].day.daily_chance_of_rain
+          ChanceOfRain:forecast.forecastday[0].day.daily_chance_of_rain,
+          icon:current.condition.icon
         },
         Location:{
           City:location.name,
@@ -83,10 +97,14 @@ const Main = () => {
         }
       });
     }catch(err){
-      console.log(err);
+      setError({
+        ...Error,
+        is_error: true,
+        error_msg:"Location unavailable"
+      });
     }finally{
       setLoading(false)
-    }
+    }}
   }
 
   return (
@@ -107,15 +125,15 @@ const Main = () => {
                         <button className="search-button" onClick={(e)=>{
                           e.preventDefault();
                           Today();
-                        }}><img src="/Imgs/search.png" className="search-img"/></button>
-                        <div className={Error ? 'error-container' : 'none'}>
-                        <span>Please Enter a Value</span>
+                        }}><img src="/Imgs/search.png" className="search-img" alt="icon"/></button>
+                        <div className={Error.is_error ? 'error-container' : 'none'}>
+                        <span>{Error.error_msg}</span>
                         </div>
                     </form>
                 </div>
                 <div className="location-details">
                     <div className="deg">
-                        <img src={`/Imgs/${WeatherDeatils.Weather.CurrentWeather}.png`} alt="icon" id="icon"/>
+                        <img src={WeatherDeatils.Weather.icon} alt="icon" id="icon"/>
                         <p className="degree"><span className="span">{WeatherDeatils.Weather.Degree}</span><span className="o">o</span><span className="C">C</span></p>
                         <p id="weather">{WeatherDeatils.Weather.CurrentWeather}</p>
                     </div>
