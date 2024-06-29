@@ -52,7 +52,7 @@ const Main = () => {
   },[GeoLocationAllowed])// eslint-disable-line react-hooks/exhaustive-deps
 
   const FetchingData = async ()=>{
-      const { data } = await axios.get(`http://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
+      const { data } = await axios.get(`https://api.weatherapi.com/v1/forecast.json?key=d030628776504a54a10150417241705&q=${Search}&days=2`);
       return data;
   }
 
